@@ -1,4 +1,4 @@
-from ds import load_data, get_text
+from data.ds import load_data, get_text
 
 
 ds = load_data()

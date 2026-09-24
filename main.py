@@ -1,31 +1,20 @@
-# from data.ds import load_data, get_text
-# from tokenizer.tokenizer import build_vocab
-from tokenizer.bpe import get_pairs, merge, text_to_bytes, train_bpe, print_vocab, encode, decode, build_vocab
-
+from tokenizer.bpe import build_vocab, encode, decode
+from tokenizer.io import load_tokenizer
 
 def main():
-    texts = [
-        "hello hello hello",
-        "hello help hello",
-        "hello world hello",
-    ]
-
-    merges = train_bpe(
-        texts,
-        vocab_size=270,
-    )
+    merges, special_tokens = load_tokenizer("tokenizer/tokenizer.json")
 
     vocab = build_vocab(merges)
+    text = "Machine learning is amazing."
 
-    text = "hello world"
+    tokens = encode(text, merges, special_tokens)
+    decoded = decode(tokens, vocab, special_tokens)
 
-    tokens = encode(text, merges)
-    decoded = decode(tokens, vocab)
-
-    print("Original:", text)
-    print("Encoded: ", tokens)
-    print("Decoded: ", decoded)
-
+    print("Original:", repr(text))
+    print("Tokens:", tokens)
+    print("Token count:", len(tokens))
+    print("Decoded:", repr(decoded))
+    print("Same:", text == decoded)
 
 if __name__ == "__main__":
     main()

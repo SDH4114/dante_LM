@@ -1,4 +1,5 @@
 from collections import Counter
+from tokenizer.pretokenizer import pre_tokenize
 
 
 def text_to_bytes(text):
@@ -51,7 +52,10 @@ def train_bpe(texts, vocab_size=300, max_docs=100):
         if i >= max_docs:
             break
 
-        corpus.append(text_to_bytes(text))
+        pieces = pre_tokenize(text)
+
+        for piece in pieces:
+            corpus.append(text_to_bytes(piece))
 
     merges = {}
     next_id = 256
@@ -93,17 +97,50 @@ def print_vocab(merges):
         token = vocab[token_id]
         print(token_id, token.decode("utf-8", "replace"))
 
-def encode(text, merges):
-    tokens = text_to_bytes(text)
 
-    for pair, token_id in merges.items():
-        tokens = merge(tokens, pair, token_id)
 
-    return tokens
+def build_special_tokens(vocab):
+    next_id = max(vocab)+1
+    # <BOS> = Beginning Of Sequence
+    # <EOS> = End Of Sequence
+    special_tokens = {"<BOS>": next_id, "<EOS>": next_id + 1}
 
-def decode(tokens, vocab):
+    return special_tokens
+
+
+def encode(text, merges, special_tokens=None):
+    result = []
+
+    if special_tokens:
+        result.append(special_tokens["<BOS>"])
+
+    pieces = pre_tokenize(text)
+
+    for piece in pieces:
+        tokens = text_to_bytes(piece)
+
+        for pair, token_id in merges.items():
+            tokens = merge(tokens, pair, token_id)
+
+        result.extend(tokens)
+
+    if special_tokens:
+        result.append(special_tokens["<EOS>"])
+
+    return result
+
+def decode(tokens, vocab, special_tokens=None):
     data = b""
+    special_ids = set()
+
+    if special_tokens:
+        special_ids = set(special_tokens.values())
+
+
     for token_id in tokens:
+        if token_id in special_ids:
+            continue
+
         data += vocab[token_id]
 
     return data.decode("utf-8", errors="replace")
