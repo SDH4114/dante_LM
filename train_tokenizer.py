@@ -1,11 +1,15 @@
-from data.ds import load_data, get_text
+from data.ds import load_data
 from tokenizer.bpe import train_bpe, build_vocab, build_special_tokens
 from tokenizer.io import save_tokenizer
 
 def main():
     ds = load_data()
-    texts = get_text(ds)
-    merges = train_bpe(texts, vocab_size=500, max_docs=100)
+    samples = list(ds.take(100))
+    texts = [sample["text"] for sample in samples]
+
+    print("Documents loaded:", len(texts))
+
+    merges = train_bpe(texts, vocab_size=500)
 
     vocab = build_vocab(merges)
     special_tokens = build_special_tokens(vocab)

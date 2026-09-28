@@ -45,13 +45,10 @@ def count_pairs(corpus):
     return pairs_count
 
 
-def train_bpe(texts, vocab_size=300, max_docs=100):
+def train_bpe(texts, vocab_size=300):
     corpus = []
 
-    for i, text in enumerate(texts):
-        if i >= max_docs:
-            break
-
+    for text in texts:
         pieces = pre_tokenize(text)
 
         for piece in pieces:
@@ -144,3 +141,19 @@ def decode(tokens, vocab, special_tokens=None):
         data += vocab[token_id]
 
     return data.decode("utf-8", errors="replace")
+
+def show_tokens(text, merges, vocab, special_tokens=None):
+    tokens = encode(text, merges, special_tokens)
+
+    special_by_id = {}
+    if special_tokens:
+        for name, token_id in special_tokens.items():
+            special_by_id[token_id] = name
+
+    for token_id in tokens:
+        if token_id in special_by_id:
+            print(token_id, " - ", special_by_id[token_id])
+        else:
+            token_bytes = vocab[token_id]
+            token_text = token_bytes.decode("utf-8", errors="replace")
+            print(token_id, " - ", repr(token_text))
